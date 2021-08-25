@@ -1,0 +1,52 @@
+Operating Systems - Assignment 3
+Meetakshi Setiya
+2019253
+
+-----Writeup------:
+
+Kernel Version : v5.9.1
+Operating System : Ubuntu 18.04.4
+
+Description of code and its implementation:
+
+First off, I added a new parameter rtnice_var in the sched_entity structure present in the file sched.h and then initialised it to 0 with the other paramters of the sched_entity structure in __sched_fork() function present in kernel/core.c. Now, after our variable is formally added and intialised to the kernel code, I made a system call (rtnice) to assign a user-defined soft runtime guarantee value to rtnice_var and added it to the syscall_64 table as well. The rtnice system call is present in sys.c file.
+In the rtnice system call, two arguements - process ID and rtnice value are taken. After assuring that all the entered values are correct, I assigned a soft runtime guarantee (rt*10^9) to the rtnice_var of the entered process.
+
+-> More priority has been given to the soft real time requirement of a process than its vruntime. It was assumed that no process would have a negative realtime requirement.
+-> Processes with rtnice_var value >0 are given priority over processes with 0 rtnice_var value. 
+-> In case two processes have 0 or same rtnice_var value, then the priority is according to the vruntime as normally happens. (the task with lower vruntime is scheduled first).
+-> In case two processes have non-zero rtnice_var values, then the one with the HIGHER rtnice_var value will be scheduled EARLIER.
+-> Each time a process with soft realtime requirement is run, the corresponding rtnice_var value is updates by subtracting the time the process ran.
+
+Now, a few modifications in the fair.c file had to be made so that our CFS scheduler works appropriately.
+
+-> update_curr(): To modify the rtnice_var of a process everytime it runs for a particular delta_exec time. rtnice_var is reduced by delta_exec amount. 
+-> entity_before(): This function acts kind of like a comparator. Here, if there are non-zero rtnice_var for a and b, the one with the higher rtnice_var has to be referred to when returning 1 or 0. If there are no soft real time requirements of a and b, the usual vruntime comparison and return is done.
+
+----------
+
+Testing and Inputs the user should give:
+
+A test file test.c has been provided to test the wotking of the entire thing. The user is asked to enter the rtnice value for a process.
+Now, the fork() system call is used to create a child process. The child process calls the rtnice system call to modify its soft runtime requirements. If all goes well, a success message will be printed on the kernel log with the process ID and the rtnice_var.
+Now, that the rtnice_var has been assigned and the execution of parent and child is taking place, timeval structures keeps track of the start and end time of both the processes. Both processes run a loop of the order 10^8 ~ 10^9. It was observed that the process with the higher soft runtime requirements completed its execution first about 80-90% of the time. 
+
+__________
+
+Expected output and interpretation:
+
+The output includes the process IDs of both the parent and child processes.
+It also includes any error/success message from the system call to rtnice.
+The highlight of the output is the execution time taken by both the process. The child, with modified rtnice_var and the parent, with 0 rtnice_var. It was observed that the process with the higher soft runtime requirements completed its execution first about 80-90% of the time. 
+
+___________
+
+Error values, handling and interpretation:
+
+The following cases lead to errors:
+
+When the real time value entered by the user is negative or the process ID is negative. In this case, an -EINVAL error is returned which can easily be caught by the perror() function in the user space program.
+
+When the process ID given to the system call does not exist. In this case, a -ESRCH error is returned returned which can easily be caught by the perror() function in the user space program..
+
+

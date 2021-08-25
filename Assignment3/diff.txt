@@ -1,0 +1,111 @@
+diff -r mylinux2/arch/x86/entry/syscalls/syscall_64.tbl linux/linux-5.9.1/arch/x86/entry/syscalls/syscall_64.tbl
+364d363
+< 440	common	rtnice		sys_rtnice
+Only in mylinux2/certs: signing_key.pem
+Only in mylinux2/certs: signing_key.x509
+Only in mylinux2/certs: x509.genkey
+diff -r mylinux2/include/linux/sched.h linux/linux-5.9.1/include/linux/sched.h
+461d460
+< 	u64				rtnice_var;
+diff -r mylinux2/kernel/sched/core.c linux/linux-5.9.1/kernel/sched/core.c
+3073d3072
+< 	p->se.rtnice_var			= 0;
+diff -r mylinux2/kernel/sched/fair.c linux/linux-5.9.1/kernel/sched/fair.c
+1c1
+< // SPDX-License-Identifier: GPL-2.0 metset
+---
+> // SPDX-License-Identifier: GPL-2.0
+537,545d536
+< 	//printk("here in entity before\n");
+< 	if(a->rtnice_var>0 || b->rtnice_var>0)
+< 	{
+< 		//printk(KERN_INFO "here in entity before\n");
+< 		if(a->rtnice_var > b->rtnice_var)
+< 			return 1;
+< 		if(a->rtnice_var <= b->rtnice_var)
+< 			return 0;
+< 	}
+631d621
+< 	//printk(KERN_INFO "here it comes pick mext entity");
+633,664d622
+< 	struct task_struct *iter;
+< 	struct sched_entity *nextprocess;
+< 	int c=0;
+< 	u64 temp = 0;
+< 
+< 	/**for_each_process(iter)
+< 	{
+< 		struct sched_entity *cur = &(iter->se);
+< 		u64 rt = cur->rtnice_var;
+< 		if(rt>0)
+< 		{
+< 			printk(KERN_INFO "rt>0 in __pick");
+< 			if(c==0)
+< 			{
+< 				c++;
+< 				temp = rt;
+< 				nextprocess = cur;
+< 			}
+< 
+< 			if(rt > temp)
+< 			{
+< 				nextprocess = cur;
+< 				temp = rt;
+< 			}
+< 		}
+< 
+< 	}
+< 
+< 	if(temp!=0)
+< 	{
+< 		return nextprocess;
+< 	}*/
+905,920c863
+< 	u64 tempvar = curr->rtnice_var;
+< 
+< 	if(curr->rtnice_var != 0)
+< 	{
+< 		if(curr->rtnice_var > delta_exec)
+< 			curr->rtnice_var = tempvar - delta_exec;
+< 		else
+< 			curr->rtnice_var = 0;
+< 	}
+< 
+< 	else
+< 	{
+< 		curr->vruntime += calc_delta_fair(delta_exec, curr);
+< 	}
+< 	
+< 
+---
+> 	curr->vruntime += calc_delta_fair(delta_exec, curr);
+4490d4432
+< 	//printk(KERN_INFO "picknext without underscores");
+diff -r mylinux2/kernel/sys.c linux/linux-5.9.1/kernel/sys.c
+2697,2719d2696
+< 
+< SYSCALL_DEFINE2(rtnice, pid_t, processid, long, rt)
+< {
+< 	if(processid<0 || rt<0)
+< 	{
+< 		return -EINVAL;
+< 	}
+< 	u64 rtval = rt * 1000000000;
+< 	struct pid *pro;
+< 	struct task_struct *taskstr;
+< 	int foo = 0;
+< 
+< 	pro = find_get_pid(processid);
+< 	if(IS_ERR_OR_NULL(pro))
+< 	{
+< 		printk(KERN_INFO "Invalid process ID\n");
+< 		return -ESRCH;
+< 	}
+< 	taskstr = get_pid_task(pro, PIDTYPE_PID);
+< 	taskstr->se.rtnice_var = rtval;
+< 	printk(KERN_INFO "%lld %d\n", taskstr->se.rtnice_var, taskstr->pid);
+< 	return 0;
+< }
+Only in mylinux2/tools/objtool/arch/x86: lib
+Only in mylinux2/tools/objtool: fixdep
+Only in mylinux2/tools/objtool: objtool
