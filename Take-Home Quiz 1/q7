@@ -1,0 +1,19 @@
+Meetakshi Setiya
+2019253
+
+We use Banker's Safety Algorithm to figure out if the system at given snapshot is in safe state or not:
+
+By the safety algorithm, the system is in safe state, with no potential deadlocks.
+
+Now, a safe order in which the processes can be completed has to be found. Again, we find that the potential safe orders to complete the processes are:
+
+<P0, P3, P1, P2, P4>
+<P0, P3, P1, P4, P2>
+<P0, P3, P2, P1, P4>
+<P0, P3, P2, P4, P1>
+<P0, P3, P4, P1, P2>
+<P0, P3, P4, P2, P1>
+
+The order of P0 and P3 should remain as is, other processes- P1, P2 and P4 can arrange themselves in any order after P0, P3.
+
+(It was mentioned to provide only a yes/no answer to the system being in safe state and the sequence the processes can be completed in if the system is in safe state; which, it is)
